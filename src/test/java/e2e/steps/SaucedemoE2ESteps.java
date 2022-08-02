@@ -1,6 +1,7 @@
 package e2e.steps;
 
 import e2e.pages.LoginPage;
+import e2e.pages.Page;
 import io.cucumber.core.logging.Logger;
 import io.cucumber.core.logging.LoggerFactory;
 import io.cucumber.java.After;
@@ -16,7 +17,6 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class SaucedemoE2ESteps {
@@ -26,7 +26,6 @@ public class SaucedemoE2ESteps {
     private WebDriver driver;
     private WebDriverWait wait;
 
-    private LoginPage loginPage;
 
     @Before
     public void setUp(){
@@ -47,7 +46,7 @@ public class SaucedemoE2ESteps {
 
     @When("Log in as a {string}")
     public void log_in_as_a(String username) {
-        loginPage = new LoginPage(driver);
+        LoginPage loginPage = new LoginPage(driver);
         WebElement passwordCredentials = loginPage.getPasswordCredentials();
         String passwordCredentialsText = passwordCredentials.getText();
         String password = passwordCredentialsText.substring(passwordCredentialsText.lastIndexOf("\n")+1).trim();
@@ -63,14 +62,15 @@ public class SaucedemoE2ESteps {
 
     @Then("Login is failed")
     public void login_is_failed() {
+        Page.Error errorPage = new Page().new Error(driver);
         Assertions.assertEquals("https://www.saucedemo.com/", driver.getCurrentUrl());
         Assertions.assertTrue(isErrorMessageContainerLocated());
-        WebElement errorMessageContainer = driver.findElement(By.cssSelector("div[class='error-message-container error']"));
-        Assertions.assertTrue(errorMessageContainer.isDisplayed());
-        WebElement errorHeader = driver.findElement(By.xpath("//h3[@data-test='error']"));
-        Assertions.assertEquals("Epic sadface: Sorry, this user has been locked out.", errorHeader.getText());
-        WebElement errorButton = driver.findElement(By.className("error-button"));
-        Assertions.assertTrue(errorButton.isDisplayed());
+        Assertions.assertTrue(errorPage.getMessageContainer().isDisplayed());
+        Assertions.assertEquals(
+                "Epic sadface: Sorry, this user has been locked out.",
+                errorPage.getHeader().getText()
+        );
+        Assertions.assertTrue(errorPage.getButton().isDisplayed());
     }
 
     @After
@@ -105,8 +105,9 @@ public class SaucedemoE2ESteps {
     }
 
     private boolean isErrorMessageContainerLocated(){
-        List<WebElement> errorMessageContainers = driver.findElements(
-                By.cssSelector("div[class='error-message-container error']"));
-        return !errorMessageContainers.isEmpty();
+        return !new Page()
+                .new Error(driver)
+                .getMessageContainers()
+                .isEmpty();
     }
 }
