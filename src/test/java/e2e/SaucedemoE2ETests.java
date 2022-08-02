@@ -9,7 +9,7 @@ import org.junit.runner.RunWith;
         plugin = {"pretty"},
         features = "src/test/resources",
         glue = {"e2e"},
-        tags = "@E2e"
+        tags = "@E2E"
 )
 public class SaucedemoE2ETests {
 }

@@ -1,5 +1,6 @@
 package e2e.steps;
 
+import e2e.pages.LoginPage;
 import io.cucumber.core.logging.Logger;
 import io.cucumber.core.logging.LoggerFactory;
 import io.cucumber.java.After;
@@ -25,6 +26,8 @@ public class SaucedemoE2ESteps {
     private WebDriver driver;
     private WebDriverWait wait;
 
+    private LoginPage loginPage;
+
     @Before
     public void setUp(){
         System.setProperty("webdriver.gecko.driver","src/test/resources/geckodriver");
@@ -43,23 +46,23 @@ public class SaucedemoE2ESteps {
     }
 
     @When("Log in as a {string}")
-    public void log_in_as_a(String userName) {
-        WebElement passwordCredentials = driver.findElement(By.className("login_password"));
+    public void log_in_as_a(String username) {
+        loginPage = new LoginPage(driver);
+        WebElement passwordCredentials = loginPage.getPasswordCredentials();
         String passwordCredentialsText = passwordCredentials.getText();
         String password = passwordCredentialsText.substring(passwordCredentialsText.lastIndexOf("\n")+1).trim();
-
-        WebElement userNameBox = driver.findElement(By.cssSelector("input[name='user-name']"));
-        userNameBox.sendKeys(userName);
-
-        WebElement passwordBox = driver.findElement(By.cssSelector("input[name='password']"));
-        passwordBox.sendKeys(password);
-
-        WebElement loginButton = driver.findElement(By.cssSelector("input[name='login-button']"));
-        loginButton.click();
+        loginPage.logOnPage(username, password);
     }
 
-    @Then("Log in is failed")
-    public void log_in_is_failed() {
+    @Then("Login is successful")
+    public void login_is_successful() {
+        Assertions.assertEquals("https://www.saucedemo.com/inventory.html", driver.getCurrentUrl());
+        Assertions.assertFalse(isErrorMessageContainerLocated());
+    }
+
+
+    @Then("Login is failed")
+    public void login_is_failed() {
         Assertions.assertEquals("https://www.saucedemo.com/", driver.getCurrentUrl());
         Assertions.assertTrue(isErrorMessageContainerLocated());
         WebElement errorMessageContainer = driver.findElement(By.cssSelector("div[class='error-message-container error']"));
